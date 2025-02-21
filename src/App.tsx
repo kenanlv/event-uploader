@@ -21,7 +21,7 @@ function App() {
   // Fetch events from API
   useEffect(() => {
     axios
-      .get(`${API_BASE_URL}/events/all`)
+      .get(`${API_BASE_URL}/api/events/all`)
       .then((res) => setEvents(res.data))
       .catch((err) => console.error("Failed to fetch events:", err));
   }, []);
