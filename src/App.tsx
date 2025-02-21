@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_BASE_URL = "https://your-api.com"; // Replace with your actual API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function App() {
   const [events, setEvents] = useState<{ id: string; name: string; image?: string }[]>([]);
@@ -9,7 +9,7 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/events`).then((res) => setEvents(res.data));
+    axios.get(`${API_BASE_URL}/api/events/all`).then((res) => setEvents(res.data));
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
