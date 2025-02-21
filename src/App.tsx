@@ -21,10 +21,16 @@ function App() {
   // Fetch events from API
   useEffect(() => {
     axios
-      .get(`${API_BASE_URL}/api/events/all`)
+      .get(`${API_BASE_URL}/events/all`)
       .then((res) => setEvents(res.data))
       .catch((err) => console.error("Failed to fetch events:", err));
   }, []);
+
+  // Handle event selection
+  const handleSelectEvent = (eventId: number) => {
+    console.log("Selected Event ID:", eventId);
+    setSelectedEventId(eventId);
+  };
 
   // Handle file selection
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,28 +41,33 @@ function App() {
 
   // Upload image & update event
   const uploadImage = async () => {
-    if (!selectedFile || !selectedEventId) return alert("Please select an event and a file.");
+    if (!selectedFile || !selectedEventId) {
+      alert("Please select an event and a file.");
+      return;
+    }
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    formData.append("image", selectedFile); // 👈 Backend expects 'image' field
+    console.log("Uploading image for event ID:", selectedEventId);
 
     try {
-      // 1️⃣ Upload the image to the server
-      const uploadResponse = await axios.post(`${API_BASE_URL}/upload`, formData);
-      const imageUrl = uploadResponse.data.url; // Assuming API returns { url: "https://image-link.jpg" }
+      // 1️⃣ PATCH Request to Update Event with Image
+      const response = await axios.patch(`${API_BASE_URL}/events/${selectedEventId}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }, // 👈 Important for file uploads!
+      });
 
-      // 2️⃣ Update the event with the image URL
-      await axios.patch(`${API_BASE_URL}/events/${selectedEventId}`, { image: imageUrl });
+      // 2️⃣ Extract Updated Event from Response
+      const updatedEvent = response.data.event;
 
-      // 3️⃣ Update local state to reflect the change
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === selectedEventId ? { ...event, image: imageUrl } : event
+      // 3️⃣ Update UI Immediately
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === selectedEventId ? { ...event, image: updatedEvent.image } : event
         )
       );
 
       alert("Image uploaded successfully!");
-      setSelectedFile(null); // Reset file selection
+      setSelectedFile(null);
     } catch (error) {
       console.error("Upload failed:", error);
       alert("Upload failed!");
@@ -69,7 +80,14 @@ function App() {
 
       <ul>
         {events.map((event) => (
-          <li key={event.id} style={{ marginBottom: "10px" }}>
+          <li
+            key={event.id}
+            style={{
+              marginBottom: "10px",
+              border: selectedEventId === event.id ? "2px solid blue" : "1px solid gray",
+              padding: "10px",
+            }}
+          >
             <strong>{event.title}</strong>
             <p>{event.category} - {event.address}</p>
             <p>{new Date(event.date).toLocaleDateString()}</p>
@@ -78,13 +96,15 @@ function App() {
             ) : (
               <p>No Image Available</p>
             )}
-            <button onClick={() => setSelectedEventId(event.id)}>Select</button>
+            <button onClick={() => handleSelectEvent(event.id)}>
+              {selectedEventId === event.id ? "Selected ✅" : "Select"}
+            </button>
           </li>
         ))}
       </ul>
 
       {selectedEventId && (
-        <div>
+        <div style={{ marginTop: "20px", padding: "10px", border: "1px solid black" }}>
           <h3>Upload Image for Selected Event</h3>
           <input type="file" onChange={handleFileChange} />
           <button onClick={uploadImage}>Upload</button>
