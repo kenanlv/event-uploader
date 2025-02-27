@@ -11,6 +11,8 @@ Currently, two official plugins are available:
 ```
 useful command
 
+npm run dev
+
 npm run deploy
 
 npm run build

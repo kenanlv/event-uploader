@@ -11,12 +11,19 @@ interface Event {
   date: string;
   address: string;
   category: string;
+  price?: string;
 }
 
 function App() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [title, setTitle] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
+  const [userProfessional, setUserProfessional] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const [dateEnd, setDateEnd] = useState<string>("");
+  const [ticketUrl, setTicketUrl] = useState<string>("");
 
   useEffect(() => {
     axios
@@ -36,14 +43,46 @@ function App() {
     }
   };
 
+  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(event.target.value);
+  };
+
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPrice(event.target.value);
+  };
+
+  const handleUserProfessionalChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUserProfessional(event.target.value);
+  };
+
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDate(event.target.value);
+  };
+
+  const handleDateEndChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDateEnd(event.target.value);
+  };
+
+  const handleTicketUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTicketUrl(event.target.value);
+  };
+
   const uploadImage = async () => {
-    if (!selectedFile || !selectedEventId) {
-      alert("Please select an event and a file.");
+    if (!selectedEventId) {
+      alert("Please select an event.");
       return;
     }
 
     const formData = new FormData();
-    formData.append("image", selectedFile);
+    if (selectedFile) {
+      formData.append("image", selectedFile);
+    }
+    if (title) formData.append("title", title);
+    if (price) formData.append("price", price);
+    if (userProfessional) formData.append("user_professional", userProfessional);
+    if (date) formData.append("date", date);
+    if (dateEnd) formData.append("date_end", dateEnd);
+    if (ticketUrl) formData.append("ticket_url", ticketUrl);
 
     console.log("Uploading image for event ID:", selectedEventId);
 
@@ -56,11 +95,11 @@ function App() {
 
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
-          event.id === selectedEventId ? { ...event, image: updatedEvent.image } : event
+          event.id === selectedEventId ? { ...event, image: updatedEvent.image, title: updatedEvent.title, price: updatedEvent.price, user_professional: updatedEvent.user_professional, date: updatedEvent.date, date_end: updatedEvent.date_end, ticket_url: updatedEvent.ticket_url } : event
         )
       );
 
-      alert("Image uploaded successfully!");
+      alert(`Event with ID ${selectedEventId} updated successfully!`);
       setSelectedFile(null);
     } catch (error) {
       console.error("Upload failed:", error);
@@ -94,6 +133,7 @@ function App() {
               ) : (
                 <p>No Image Available</p>
               )}
+              <p>Price: {event.price}</p>
               <button onClick={() => handleSelectEvent(event.id)}>
                 {selectedEventId === event.id ? "Selected ✅" : "Select"}
               </button>
@@ -103,6 +143,12 @@ function App() {
             {selectedEventId === event.id && (
               <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <input type="file" onChange={handleFileChange} />
+                <input type="text" placeholder="Title" value={title} onChange={handleTitleChange} />
+                <input type="text" placeholder="Price" value={price} onChange={handlePriceChange} />
+                <input type="text" placeholder="User Professional" value={userProfessional} onChange={handleUserProfessionalChange} />
+                <input type="text" placeholder="Date" value={date} onChange={handleDateChange} />
+                <input type="text" placeholder="Date End" value={dateEnd} onChange={handleDateEndChange} />
+                <input type="text" placeholder="Ticket URL" value={ticketUrl} onChange={handleTicketUrlChange} />
                 <button onClick={uploadImage} style={{ marginTop: "5px" }}>Upload</button>
               </div>
             )}
