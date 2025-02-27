@@ -12,6 +12,8 @@ interface Event {
   address: string;
   category: string;
   price?: string;
+  dateEnd: string;
+  ticketUrl: string;
 }
 
 function App() {
@@ -32,10 +34,10 @@ function App() {
       .catch((err) => console.error("Failed to fetch events:", err));
   }, []);
 
-  const handleSelectEvent = (eventId: number) => {
-    console.log("Selected Event ID:", eventId);
-    setSelectedEventId(eventId);
-  };
+const handleSelectEvent = (eventId: number) => {
+  console.log("Selected Event ID:", eventId);
+  setSelectedEventId((prevSelectedEventId) => (prevSelectedEventId === eventId ? null : eventId));
+};
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -113,35 +115,29 @@ function App() {
 
       <ul style={{ listStyleType: "none", padding: 0 }}>
         {events.map((event) => (
-          <li
+          <div
             key={event.id}
+            className="event-item"
             style={{
-              marginBottom: "10px",
               border: selectedEventId === event.id ? "2px solid blue" : "1px solid gray",
-              padding: "10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
             }}
           >
-            <div style={{ flex: 1 }}>
-              <strong>{event.title}</strong>
-              <p>{event.category} - {event.address}</p>
-              <p>{new Date(event.date).toLocaleDateString()}</p>
-              {event.image ? (
-                <img src={event.image} alt="Event" width="100" />
-              ) : (
-                <p>No Image Available</p>
-              )}
-              <p>Price: {event.price}</p>
-              <button onClick={() => handleSelectEvent(event.id)}>
-                {selectedEventId === event.id ? "Selected ✅" : "Select"}
-              </button>
-            </div>
+            <strong>{event.title}</strong>
+            <p>Category: {event.category}</p>
+            <p>Address: {event.address}</p>
+            <p>Date: {new Date(event.date).toLocaleDateString()}</p>
+            <p>Date End: {new Date(event.dateEnd).toLocaleDateString()}</p>
+            <p>User Profile Pic: <img src={event.user_profile_pic} alt="User Profile" width="50" /></p>
+            <p>Ticket URL: <a href={event.ticketUrl} target="_blank" rel="noopener noreferrer">{event.ticketUrl}</a></p>
+            <p>Price: {event.price}</p>
+            <p>Image: {event.image ? <img src={event.image} alt="Event" width="100" /> : "No Image Available"}</p>
+            <button onClick={() => handleSelectEvent(event.id)}>
+              {selectedEventId === event.id ? "Selected ✅" : "Select"}
+            </button>
 
             {/* Upload UI appears next to the selected event */}
             {selectedEventId === event.id && (
-              <div style={{ marginLeft: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <input type="file" onChange={handleFileChange} />
                 <input type="text" placeholder="Title" value={title} onChange={handleTitleChange} />
                 <input type="text" placeholder="Price" value={price} onChange={handlePriceChange} />
@@ -152,7 +148,7 @@ function App() {
                 <button onClick={uploadImage} style={{ marginTop: "5px" }}>Upload</button>
               </div>
             )}
-          </li>
+          </div>
         ))}
       </ul>
     </div>
